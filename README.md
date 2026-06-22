@@ -50,10 +50,16 @@ needed to switch.
 The frontend home page shows a live status panel for the frontend, backend,
 and database — all three dots green means the environment is wired correctly.
 
-## Backend health endpoints
+## Backend endpoints
 
+Health:
 - `GET /health` — process liveness
 - `GET /health/db` — database connectivity
+
+Auth (Milestone 1):
+- `POST /auth/register` — `{ email, password }` → created user (409 if email taken)
+- `POST /auth/login` — OAuth2 form (`username`=email, `password`) → `{ access_token }`
+- `GET /auth/me` — current user (requires `Authorization: Bearer <token>`)
 
 ## Database migrations (Alembic)
 
@@ -65,6 +71,6 @@ docker compose exec backend alembic upgrade head
 ## Project status
 
 - [x] **Milestone 0** — project setup (frontend, backend, DB, Docker)
-- [ ] Milestone 1 — authentication
+- [x] **Milestone 1** — authentication (register / login / me, JWT, protected routes)
 - [ ] Milestone 2 — project management
 - [ ] ... see `steps.md`
