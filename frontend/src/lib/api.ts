@@ -67,6 +67,8 @@ export const api = {
     request<T>(path, { method: "POST", body, auth }),
   postForm: <T>(path: string, form: URLSearchParams) =>
     request<T>(path, { method: "POST", form }),
+  del: <T>(path: string, auth = false) =>
+    request<T>(path, { method: "DELETE", auth }),
 };
 
 export { API_URL };

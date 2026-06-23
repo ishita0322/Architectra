@@ -61,6 +61,12 @@ Auth (Milestone 1):
 - `POST /auth/login` — OAuth2 form (`username`=email, `password`) → `{ access_token }`
 - `GET /auth/me` — current user (requires `Authorization: Bearer <token>`)
 
+Projects (Milestone 2, all require auth; scoped to the current user):
+- `POST /projects` — `{ title, prompt? }` → created project
+- `GET /projects` — list the user's projects (newest first)
+- `GET /projects/{id}` — one project (404 if missing or not owned)
+- `DELETE /projects/{id}` — delete (204; 404 if missing or not owned)
+
 ## Database migrations (Alembic)
 
 ```bash
@@ -72,5 +78,5 @@ docker compose exec backend alembic upgrade head
 
 - [x] **Milestone 0** — project setup (frontend, backend, DB, Docker)
 - [x] **Milestone 1** — authentication (register / login / me, JWT, protected routes)
-- [ ] Milestone 2 — project management
+- [x] **Milestone 2** — project management (projects CRUD, user-scoped; dashboard create/list/delete)
 - [ ] ... see `steps.md`

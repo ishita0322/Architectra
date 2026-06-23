@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pkill -f \"uvicorn app.main\")",
+      "Bash(/home/ishita/system/project-1/backend/.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000)"
+    ]
+  }
+}
