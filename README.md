@@ -79,4 +79,5 @@ docker compose exec backend alembic upgrade head
 - [x] **Milestone 0** — project setup (frontend, backend, DB, Docker)
 - [x] **Milestone 1** — authentication (register / login / me, JWT, protected routes)
 - [x] **Milestone 2** — project management (projects CRUD, user-scoped; dashboard create/list/delete)
+- [x] **Milestone 3** — design workspace (3-panel layout, section nav, responsive; opens per project)
 - [ ] ... see `steps.md`

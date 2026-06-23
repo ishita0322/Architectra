@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 import { useAuth } from "../auth/AuthContext";
 import { ApiError } from "../lib/api";
@@ -162,7 +163,10 @@ function ProjectRow({
 }) {
   return (
     <li className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-5 py-4">
-      <div className="min-w-0">
+      <Link
+        to={`/workspace/${project.id}`}
+        className="min-w-0 flex-1 rounded-lg -mx-2 px-2 py-1 hover:bg-slate-50"
+      >
         <p className="truncate font-medium text-slate-900">{project.title}</p>
         <p className="mt-0.5 truncate text-sm text-slate-500">
           {project.prompt || "No prompt yet"}
@@ -170,7 +174,7 @@ function ProjectRow({
         <p className="mt-1 text-xs text-slate-400">
           Updated {new Date(project.updated_at).toLocaleString()}
         </p>
-      </div>
+      </Link>
       <button
         onClick={onDelete}
         disabled={deleting}

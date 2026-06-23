@@ -9,6 +9,7 @@ import "./index.css";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Workspace from "./pages/Workspace";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/register" element={<Register />} />
             <Route element={<ProtectedRoute />}>
               <Route path="/" element={<Dashboard />} />
+              <Route path="/workspace/:projectId" element={<Workspace />} />
             </Route>
           </Routes>
         </AuthProvider>

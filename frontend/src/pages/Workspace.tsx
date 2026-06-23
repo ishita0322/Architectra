@@ -1,0 +1,185 @@
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+
+import { useAuth } from "../auth/AuthContext";
+import { getProject } from "../lib/projects-api";
+import PromptEditor from "../workspace/PromptEditor";
+import SectionContent from "../workspace/SectionContent";
+import SectionNav from "../workspace/SectionNav";
+import { SECTIONS, type SectionId } from "../workspace/sections";
+
+export default function Workspace() {
+  const { user, logout } = useAuth();
+  const { projectId } = useParams();
+  const id = Number(projectId);
+
+  const {
+    data: project,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["project", id],
+    queryFn: () => getProject(id),
+    enabled: Number.isFinite(id),
+  });
+
+  const [prompt, setPrompt] = useState("");
+  const [active, setActive] = useState<SectionId>("requirements");
+  const [generating] = useState(false);
+
+  // Mobile drawer toggles (panels are static columns on lg+).
+  const [showPrompt, setShowPrompt] = useState(false);
+  const [showNav, setShowNav] = useState(false);
+
+  // Seed the editor from the loaded project's prompt.
+  useEffect(() => {
+    if (project) setPrompt(project.prompt);
+  }, [project]);
+
+  const activeSection = SECTIONS.find((s) => s.id === active) ?? SECTIONS[0];
+
+  function handleSelect(sectionId: SectionId) {
+    setActive(sectionId);
+    setShowNav(false);
+  }
+
+  function handleGenerate() {
+    // Generation is wired up in Milestones 5–10. No-op for now.
+    setShowPrompt(false);
+  }
+
+  return (
+    <div className="flex h-screen flex-col bg-slate-50">
+      {/* Top bar */}
+      <header className="z-20 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setShowPrompt((v) => !v)}
+            className="rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-medium text-slate-700 lg:hidden"
+            aria-label="Toggle prompt panel"
+          >
+            Prompt
+          </button>
+          <Link to="/" className="font-semibold text-slate-900">
+            AI System Architect
+          </Link>
+          {project && (
+            <span className="hidden text-sm text-slate-400 sm:inline">
+              / {project.title}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setShowNav((v) => !v)}
+            className="rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-medium text-slate-700 lg:hidden"
+            aria-label="Toggle sections panel"
+          >
+            Sections
+          </button>
+          <span className="hidden text-sm text-slate-500 sm:inline">{user?.email}</span>
+          <button
+            onClick={logout}
+            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Log out
+          </button>
+        </div>
+      </header>
+
+      {/* Three-panel body */}
+      <div className="relative flex flex-1 overflow-hidden">
+        {/* Left: prompt editor */}
+        <Panel
+          side="left"
+          open={showPrompt}
+          onClose={() => setShowPrompt(false)}
+          className="w-80 border-r"
+        >
+          <PromptEditor
+            prompt={prompt}
+            onPromptChange={setPrompt}
+            onGenerate={handleGenerate}
+            generating={generating}
+          />
+        </Panel>
+
+        {/* Center: generated content */}
+        <main className="flex-1 overflow-y-auto">
+          <div className="mx-auto max-w-3xl px-6 py-6">
+            {isLoading && (
+              <p className="text-sm text-slate-500">Loading project…</p>
+            )}
+            {isError && (
+              <p className="text-sm text-red-600">
+                Could not load this project.{" "}
+                <Link to="/" className="underline">
+                  Back to projects
+                </Link>
+              </p>
+            )}
+            {!isLoading && !isError && <SectionContent section={activeSection} />}
+          </div>
+        </main>
+
+        {/* Right: section navigation */}
+        <Panel
+          side="right"
+          open={showNav}
+          onClose={() => setShowNav(false)}
+          className="w-56 border-l"
+        >
+          <SectionNav active={active} onSelect={handleSelect} />
+        </Panel>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * A side panel that is a static column on large screens and an overlay drawer
+ * on small screens.
+ */
+function Panel({
+  side,
+  open,
+  onClose,
+  className,
+  children,
+}: {
+  side: "left" | "right";
+  open: boolean;
+  onClose: () => void;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <>
+      {/* Mobile backdrop */}
+      {open && (
+        <button
+          type="button"
+          aria-label="Close panel"
+          onClick={onClose}
+          className="absolute inset-0 z-20 bg-slate-900/20 lg:hidden"
+        />
+      )}
+      <aside
+        className={`${className ?? ""} absolute ${
+          side === "left" ? "left-0" : "right-0"
+        } top-0 z-30 h-full bg-white transition-transform lg:static lg:z-0 lg:translate-x-0 ${
+          open
+            ? "translate-x-0"
+            : side === "left"
+              ? "-translate-x-full"
+              : "translate-x-full"
+        }`}
+      >
+        {children}
+      </aside>
+    </>
+  );
+}
