@@ -67,6 +67,12 @@ Projects (Milestone 2, all require auth; scoped to the current user):
 - `GET /projects/{id}` — one project (404 if missing or not owned)
 - `DELETE /projects/{id}` — delete (204; 404 if missing or not owned)
 
+Design storage (Milestone 4, auth + project ownership required):
+- `GET /projects/{id}/design` — load stored design (404 until first save)
+- `PUT /projects/{id}/design` — save/update; upsert with partial-field semantics
+  (sends any subset of `requirements_json`, `capacity_json`, `architecture_json`,
+  `database_json`, `api_json`, `diagram_text`; unsent fields are left untouched)
+
 ## Database migrations (Alembic)
 
 ```bash
@@ -80,4 +86,5 @@ docker compose exec backend alembic upgrade head
 - [x] **Milestone 1** — authentication (register / login / me, JWT, protected routes)
 - [x] **Milestone 2** — project management (projects CRUD, user-scoped; dashboard create/list/delete)
 - [x] **Milestone 3** — design workspace (3-panel layout, section nav, responsive; opens per project)
+- [x] **Milestone 4** — design storage (`designs` table; save / load / partial-update generated output)
 - [ ] ... see `steps.md`
