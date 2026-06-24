@@ -26,6 +26,18 @@ export function createProject(payload: ProjectCreate): Promise<Project> {
   return api.post<Project>("/projects", payload, true);
 }
 
+export interface ProjectUpdate {
+  title?: string;
+  prompt?: string;
+}
+
+export function updateProject(
+  id: number,
+  payload: ProjectUpdate,
+): Promise<Project> {
+  return api.patch<Project>(`/projects/${id}`, payload, true);
+}
+
 export function deleteProject(id: number): Promise<void> {
   return api.del<void>(`/projects/${id}`, true);
 }

@@ -3,6 +3,10 @@ interface PromptEditorProps {
   onPromptChange: (value: string) => void;
   onGenerate: () => void;
   generating?: boolean;
+  onSave?: () => void;
+  saving?: boolean;
+  /** True when the prompt differs from what's stored on the project. */
+  dirty?: boolean;
 }
 
 const EXAMPLES = [
@@ -16,14 +20,29 @@ export default function PromptEditor({
   onPromptChange,
   onGenerate,
   generating = false,
+  onSave,
+  saving = false,
+  dirty = false,
 }: PromptEditorProps) {
   return (
     <div className="flex h-full flex-col">
-      <div className="border-b border-slate-200 px-4 py-3">
-        <h2 className="text-sm font-semibold text-slate-900">Prompt</h2>
-        <p className="mt-0.5 text-xs text-slate-500">
-          Describe the system you want to design.
-        </p>
+      <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+        <div>
+          <h2 className="text-sm font-semibold text-slate-900">Prompt</h2>
+          <p className="mt-0.5 text-xs text-slate-500">
+            Describe the system you want to design.
+          </p>
+        </div>
+        {onSave && (
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={saving || !dirty}
+            className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+          >
+            {saving ? "Saving…" : dirty ? "Save" : "Saved"}
+          </button>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-4">

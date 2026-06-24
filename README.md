@@ -65,6 +65,7 @@ Projects (Milestone 2, all require auth; scoped to the current user):
 - `POST /projects` — `{ title, prompt? }` → created project
 - `GET /projects` — list the user's projects (newest first)
 - `GET /projects/{id}` — one project (404 if missing or not owned)
+- `PATCH /projects/{id}` — update `title` and/or `prompt` (partial; 404 if not owned)
 - `DELETE /projects/{id}` — delete (204; 404 if missing or not owned)
 
 Design storage (Milestone 4, auth + project ownership required):

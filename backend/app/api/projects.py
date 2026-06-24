@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user
 from app.db.models import Project, User
 from app.db.session import get_db
-from app.schemas.project import ProjectCreate, ProjectOut
+from app.schemas.project import ProjectCreate, ProjectOut, ProjectUpdate
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -57,6 +57,22 @@ def get_project(
     user: User = Depends(get_current_user),
 ) -> Project:
     return _get_owned_project(project_id, user, db)
+
+
+@router.patch("/{project_id}", response_model=ProjectOut)
+def update_project(
+    project_id: int,
+    payload: ProjectUpdate,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> Project:
+    """Update a project's title and/or prompt (partial)."""
+    project = _get_owned_project(project_id, user, db)
+    for field, value in payload.model_dump(exclude_unset=True).items():
+        setattr(project, field, value)
+    db.commit()
+    db.refresh(project)
+    return project
 
 
 @router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)

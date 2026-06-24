@@ -5,7 +5,7 @@ import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { ApiError } from "../lib/api";
 import { generateRequirements, getDesign } from "../lib/design-api";
-import { getProject } from "../lib/projects-api";
+import { getProject, updateProject } from "../lib/projects-api";
 import PromptEditor from "../workspace/PromptEditor";
 import SectionContent from "../workspace/SectionContent";
 import SectionNav from "../workspace/SectionNav";
@@ -53,6 +53,17 @@ export default function Workspace() {
       queryClient.invalidateQueries({ queryKey: ["project", id] });
     },
   });
+
+  const savePromptMut = useMutation({
+    mutationFn: () => updateProject(id, { prompt }),
+    onSuccess: (updated) => {
+      // Refresh the cached project so `dirty` resets to false.
+      queryClient.setQueryData(["project", id], updated);
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+    },
+  });
+
+  const promptDirty = project != null && prompt !== project.prompt;
 
   const activeSection = SECTIONS.find((s) => s.id === active) ?? SECTIONS[0];
 
@@ -132,6 +143,9 @@ export default function Workspace() {
             onPromptChange={setPrompt}
             onGenerate={handleGenerate}
             generating={requirementsMut.isPending}
+            onSave={() => savePromptMut.mutate()}
+            saving={savePromptMut.isPending}
+            dirty={promptDirty}
           />
         </Panel>
 

@@ -65,6 +65,8 @@ export const api = {
   get: <T>(path: string, auth = false) => request<T>(path, { auth }),
   post: <T>(path: string, body: unknown, auth = false) =>
     request<T>(path, { method: "POST", body, auth }),
+  patch: <T>(path: string, body: unknown, auth = false) =>
+    request<T>(path, { method: "PATCH", body, auth }),
   postForm: <T>(path: string, form: URLSearchParams) =>
     request<T>(path, { method: "POST", form }),
   del: <T>(path: string, auth = false) =>
