@@ -18,9 +18,13 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
 
-    # AI provider (used from Milestone 5 onward)
-    ollama_base_url: str = "http://host.docker.internal:11434"
+    # AI provider (used from Milestone 5 onward).
+    # Local venv dev talks to Ollama on localhost; under docker compose the
+    # backend overrides this with host.docker.internal via .env.
+    ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "qwen3:8b"
+    # Generation can be slow on CPU inference; give the model room.
+    ollama_timeout_seconds: float = 120.0
 
     # CORS
     cors_origins: str = "http://localhost:5173"

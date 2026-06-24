@@ -73,6 +73,28 @@ Design storage (Milestone 4, auth + project ownership required):
   (sends any subset of `requirements_json`, `capacity_json`, `architecture_json`,
   `database_json`, `api_json`, `diagram_text`; unsent fields are left untouched)
 
+Generation (Milestone 5+, auth + project ownership required):
+- `POST /projects/{id}/generate/requirements` — `{ prompt? }` → `{ functional,
+  non_functional, assumptions }`. Uses `prompt` if given (and saves it onto the
+  project), else the project's stored prompt. Result is stored automatically in
+  `designs.requirements_json`. Requires a running Ollama (see **AI setup**).
+
+## AI setup (Ollama, required from Milestone 5)
+
+Generation calls a local [Ollama](https://ollama.com) server over its REST API
+(`FastAPI → httpx → Ollama → Qwen3`). Install and pull the model once:
+
+```bash
+curl -fsSL https://ollama.com/install.sh | sh   # starts ollama on :11434
+ollama pull qwen3:8b
+curl -s localhost:11434/api/tags                 # verify the model is listed
+```
+
+`OLLAMA_BASE_URL` defaults to `http://localhost:11434` for local venv dev; set
+it to `http://host.docker.internal:11434` under docker compose so the container
+can reach Ollama on the host. CPU inference is slow (~20–60s/generation); the
+backend allows up to `OLLAMA_TIMEOUT_SECONDS` (default 120).
+
 ## Database migrations (Alembic)
 
 ```bash
@@ -87,4 +109,5 @@ docker compose exec backend alembic upgrade head
 - [x] **Milestone 2** — project management (projects CRUD, user-scoped; dashboard create/list/delete)
 - [x] **Milestone 3** — design workspace (3-panel layout, section nav, responsive; opens per project)
 - [x] **Milestone 4** — design storage (`designs` table; save / load / partial-update generated output)
+- [x] **Milestone 5** — requirements generator (Ollama provider abstraction; `POST .../generate/requirements`, auto-stored, regeneratable)
 - [ ] ... see `steps.md`

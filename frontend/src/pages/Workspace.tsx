@@ -1,8 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import { useAuth } from "../auth/AuthContext";
+import { ApiError } from "../lib/api";
+import { generateRequirements, getDesign } from "../lib/design-api";
 import { getProject } from "../lib/projects-api";
 import PromptEditor from "../workspace/PromptEditor";
 import SectionContent from "../workspace/SectionContent";
@@ -13,6 +15,7 @@ export default function Workspace() {
   const { user, logout } = useAuth();
   const { projectId } = useParams();
   const id = Number(projectId);
+  const queryClient = useQueryClient();
 
   const {
     data: project,
@@ -24,9 +27,15 @@ export default function Workspace() {
     enabled: Number.isFinite(id),
   });
 
+  // Stored design (sections generated so far). null until first generation.
+  const { data: design } = useQuery({
+    queryKey: ["design", id],
+    queryFn: () => getDesign(id),
+    enabled: Number.isFinite(id),
+  });
+
   const [prompt, setPrompt] = useState("");
   const [active, setActive] = useState<SectionId>("requirements");
-  const [generating] = useState(false);
 
   // Mobile drawer toggles (panels are static columns on lg+).
   const [showPrompt, setShowPrompt] = useState(false);
@@ -37,6 +46,14 @@ export default function Workspace() {
     if (project) setPrompt(project.prompt);
   }, [project]);
 
+  const requirementsMut = useMutation({
+    mutationFn: () => generateRequirements(id, prompt),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["design", id] });
+      queryClient.invalidateQueries({ queryKey: ["project", id] });
+    },
+  });
+
   const activeSection = SECTIONS.find((s) => s.id === active) ?? SECTIONS[0];
 
   function handleSelect(sectionId: SectionId) {
@@ -45,9 +62,20 @@ export default function Workspace() {
   }
 
   function handleGenerate() {
-    // Generation is wired up in Milestones 5–10. No-op for now.
     setShowPrompt(false);
+    // Only requirements generation exists today (Milestone 5); later
+    // milestones add a branch per section.
+    if (active === "requirements" || requirementsMut.isIdle) {
+      requirementsMut.mutate();
+    }
   }
+
+  const requirementsError =
+    requirementsMut.error instanceof ApiError
+      ? requirementsMut.error.message
+      : requirementsMut.error
+        ? "Generation failed."
+        : null;
 
   return (
     <div className="flex h-screen flex-col bg-slate-50">
@@ -103,7 +131,7 @@ export default function Workspace() {
             prompt={prompt}
             onPromptChange={setPrompt}
             onGenerate={handleGenerate}
-            generating={generating}
+            generating={requirementsMut.isPending}
           />
         </Panel>
 
@@ -121,7 +149,15 @@ export default function Workspace() {
                 </Link>
               </p>
             )}
-            {!isLoading && !isError && <SectionContent section={activeSection} />}
+            {!isLoading && !isError && (
+              <SectionContent
+                section={activeSection}
+                requirements={design?.requirements_json ?? null}
+                generating={requirementsMut.isPending}
+                error={requirementsError}
+                onGenerate={handleGenerate}
+              />
+            )}
           </div>
         </main>
 
