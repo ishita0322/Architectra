@@ -5,6 +5,7 @@ import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { ApiError } from "../lib/api";
 import {
+  generateArchitecture,
   generateCapacity,
   generateRequirements,
   getDesign,
@@ -75,6 +76,13 @@ export default function Workspace() {
     },
   });
 
+  const architectureMut = useMutation({
+    mutationFn: () => generateArchitecture(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["design", id] });
+    },
+  });
+
   const promptDirty = project != null && prompt !== project.prompt;
 
   const activeSection = SECTIONS.find((s) => s.id === active) ?? SECTIONS[0];
@@ -105,6 +113,13 @@ export default function Workspace() {
       ? capacityMut.error.message
       : capacityMut.error
         ? "Capacity computation failed."
+        : null;
+
+  const architectureError =
+    architectureMut.error instanceof ApiError
+      ? architectureMut.error.message
+      : architectureMut.error
+        ? "Architecture generation failed."
         : null;
 
   return (
@@ -193,6 +208,10 @@ export default function Workspace() {
                 capacityComputing={capacityMut.isPending}
                 capacityError={capacityError}
                 onComputeCapacity={(inputs) => capacityMut.mutate(inputs)}
+                architecture={design?.architecture_json ?? null}
+                architectureGenerating={architectureMut.isPending}
+                architectureError={architectureError}
+                onGenerateArchitecture={() => architectureMut.mutate()}
               />
             )}
           </div>

@@ -1,4 +1,10 @@
-import type { Capacity, CapacityInputs, Requirements } from "../lib/design-api";
+import type {
+  Architecture,
+  Capacity,
+  CapacityInputs,
+  Requirements,
+} from "../lib/design-api";
+import ArchitectureView from "./ArchitectureView";
 import CapacityView from "./CapacityView";
 import type { SectionMeta } from "./sections";
 
@@ -13,6 +19,11 @@ interface SectionContentProps {
   capacityComputing: boolean;
   capacityError: string | null;
   onComputeCapacity: (inputs: CapacityInputs) => void;
+  // Architecture (Milestone 7)
+  architecture: Architecture | null;
+  architectureGenerating: boolean;
+  architectureError: string | null;
+  onGenerateArchitecture: () => void;
 }
 
 /**
@@ -32,6 +43,10 @@ export default function SectionContent({
   capacityComputing,
   capacityError,
   onComputeCapacity,
+  architecture,
+  architectureGenerating,
+  architectureError,
+  onGenerateArchitecture,
 }: SectionContentProps) {
   return (
     <section
@@ -63,6 +78,13 @@ export default function SectionContent({
             computing={capacityComputing}
             error={capacityError}
             onCompute={onComputeCapacity}
+          />
+        ) : section.id === "architecture" ? (
+          <ArchitectureView
+            architecture={architecture}
+            generating={architectureGenerating}
+            error={architectureError}
+            onGenerate={onGenerateArchitecture}
           />
         ) : (
           <Placeholder description={section.description} />

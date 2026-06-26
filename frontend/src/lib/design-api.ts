@@ -34,13 +34,31 @@ export interface CapacityInputs {
   actions_per_user: number;
 }
 
+export interface ArchService {
+  name: string;
+  responsibility: string;
+  depends_on: string[];
+}
+
+export interface ArchComponent {
+  name: string;
+  purpose: string;
+}
+
+export interface Architecture {
+  services: ArchService[];
+  databases: ArchComponent[];
+  queues: ArchComponent[];
+  caches: ArchComponent[];
+}
+
 /** Stored design for a project. Section fields are null until generated. */
 export interface Design {
   id: number;
   project_id: number;
   requirements_json: Requirements | null;
   capacity_json: Capacity | null;
-  architecture_json: unknown | null;
+  architecture_json: Architecture | null;
   database_json: unknown | null;
   api_json: unknown | null;
   diagram_text: string | null;
@@ -80,6 +98,15 @@ export function generateCapacity(
   return api.post<Capacity>(
     `/projects/${projectId}/generate/capacity`,
     inputs,
+    true,
+  );
+}
+
+/** Generate the component architecture from the project's requirements + capacity. */
+export function generateArchitecture(projectId: number): Promise<Architecture> {
+  return api.post<Architecture>(
+    `/projects/${projectId}/generate/architecture`,
+    {},
     true,
   );
 }

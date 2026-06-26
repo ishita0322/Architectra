@@ -83,6 +83,10 @@ Generation (Milestone 5+, auth + project ownership required):
   `{ dau, peak_traffic_factor?, actions_per_user?, ... }` → peak/avg RPS, storage
   growth, bandwidth, database size, cache recommendation. Computed by
   `app/services/capacity_engine.py`; stored in `designs.capacity_json`.
+- `POST /projects/{id}/generate/architecture` — generates `{ services (with
+  depends_on relationships), databases, queues, caches }` from the project's
+  prompt + stored requirements + capacity. Stored in `designs.architecture_json`.
+  Requires Ollama.
 
 ## AI setup (Ollama, required from Milestone 5)
 
@@ -116,4 +120,5 @@ docker compose exec backend alembic upgrade head
 - [x] **Milestone 4** — design storage (`designs` table; save / load / partial-update generated output)
 - [x] **Milestone 5** — requirements generator (Ollama provider abstraction; `POST .../generate/requirements`, auto-stored, regeneratable)
 - [x] **Milestone 6** — capacity engine (deterministic sizing; dashboard + charts; auto-stored in `capacity_json`)
+- [x] **Milestone 7** — architecture generator (services/databases/queues/caches + relationships; auto-stored in `architecture_json`)
 - [ ] ... see `steps.md`

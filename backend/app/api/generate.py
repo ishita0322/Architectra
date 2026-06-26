@@ -14,8 +14,10 @@ from app.api.deps import get_current_user
 from app.api.projects import _get_owned_project
 from app.db.models import Design, Project, User
 from app.db.session import get_db
+from app.schemas.architecture import Architecture
 from app.schemas.capacity import CapacityRequest, CapacityResult
 from app.schemas.requirements import Requirements, RequirementsGenerateRequest
+from app.services.architecture_generator import generate_architecture
 from app.services.capacity_engine import CapacityInputs, compute_capacity
 from app.services.requirements_generator import generate_requirements
 
@@ -101,3 +103,37 @@ def generate_capacity_endpoint(
     db.commit()
 
     return CapacityResult(**result)
+
+
+@router.post("/architecture", response_model=Architecture)
+async def generate_architecture_endpoint(
+    project_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+    provider: LLMProvider = Depends(get_provider),
+) -> Architecture:
+    """Generate the component architecture and store it.
+
+    Input is the project's prompt plus its already-generated requirements and
+    capacity (per the milestone spec). Result is stored in
+    ``designs.architecture_json``.
+    """
+    project: Project = _get_owned_project(project_id, user, db)
+    design = _get_or_create_design(project_id, db)
+
+    try:
+        architecture = await generate_architecture(
+            provider,
+            project.prompt or "",
+            design.requirements_json,
+            design.capacity_json,
+        )
+    except LLMError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)
+        ) from exc
+
+    design.architecture_json = architecture.model_dump()
+    db.commit()
+
+    return architecture
