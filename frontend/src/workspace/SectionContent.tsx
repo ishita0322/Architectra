@@ -1,4 +1,5 @@
-import type { Requirements } from "../lib/design-api";
+import type { Capacity, CapacityInputs, Requirements } from "../lib/design-api";
+import CapacityView from "./CapacityView";
 import type { SectionMeta } from "./sections";
 
 interface SectionContentProps {
@@ -7,14 +8,19 @@ interface SectionContentProps {
   generating: boolean;
   error: string | null;
   onGenerate: () => void;
+  // Capacity (Milestone 6)
+  capacity: Capacity | null;
+  capacityComputing: boolean;
+  capacityError: string | null;
+  onComputeCapacity: (inputs: CapacityInputs) => void;
 }
 
 /**
  * Renders the center-panel content for the active section.
  *
- * Requirements (Milestone 5) renders generated data with a generate/regenerate
- * control. Sections from later milestones (6–10) still show an empty state
- * until their generators land.
+ * Requirements (Milestone 5) and Capacity (Milestone 6) render generated data
+ * with their controls. Sections from later milestones (7–10) still show an
+ * empty state until their generators land.
  */
 export default function SectionContent({
   section,
@@ -22,6 +28,10 @@ export default function SectionContent({
   generating,
   error,
   onGenerate,
+  capacity,
+  capacityComputing,
+  capacityError,
+  onComputeCapacity,
 }: SectionContentProps) {
   return (
     <section
@@ -46,6 +56,13 @@ export default function SectionContent({
             generating={generating}
             error={error}
             onGenerate={onGenerate}
+          />
+        ) : section.id === "capacity" ? (
+          <CapacityView
+            capacity={capacity}
+            computing={capacityComputing}
+            error={capacityError}
+            onCompute={onComputeCapacity}
           />
         ) : (
           <Placeholder description={section.description} />

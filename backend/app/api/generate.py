@@ -14,7 +14,9 @@ from app.api.deps import get_current_user
 from app.api.projects import _get_owned_project
 from app.db.models import Design, Project, User
 from app.db.session import get_db
+from app.schemas.capacity import CapacityRequest, CapacityResult
 from app.schemas.requirements import Requirements, RequirementsGenerateRequest
+from app.services.capacity_engine import CapacityInputs, compute_capacity
 from app.services.requirements_generator import generate_requirements
 
 router = APIRouter(prefix="/projects/{project_id}/generate", tags=["generate"])
@@ -67,3 +69,35 @@ async def generate_requirements_endpoint(
 
     db.commit()
     return requirements
+
+
+@router.post("/capacity", response_model=CapacityResult)
+def generate_capacity_endpoint(
+    project_id: int,
+    payload: CapacityRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> CapacityResult:
+    """Compute deterministic capacity estimates and store them.
+
+    No AI — pure calculation via ``capacity_engine``. Result is stored on the
+    project's design (``capacity_json``) so the workspace can reload it.
+    """
+    _get_owned_project(project_id, user, db)
+
+    result = compute_capacity(
+        CapacityInputs(
+            dau=payload.dau,
+            peak_traffic_factor=payload.peak_traffic_factor,
+            actions_per_user=payload.actions_per_user,
+            avg_request_size_kb=payload.avg_request_size_kb,
+            bytes_per_action=payload.bytes_per_action,
+            retention_days=payload.retention_days,
+        )
+    )
+
+    design = _get_or_create_design(project_id, db)
+    design.capacity_json = result
+    db.commit()
+
+    return CapacityResult(**result)

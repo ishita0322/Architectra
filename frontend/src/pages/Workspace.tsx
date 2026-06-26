@@ -4,7 +4,12 @@ import { Link, useParams } from "react-router-dom";
 
 import { useAuth } from "../auth/AuthContext";
 import { ApiError } from "../lib/api";
-import { generateRequirements, getDesign } from "../lib/design-api";
+import {
+  generateCapacity,
+  generateRequirements,
+  getDesign,
+  type CapacityInputs,
+} from "../lib/design-api";
 import { getProject, updateProject } from "../lib/projects-api";
 import PromptEditor from "../workspace/PromptEditor";
 import SectionContent from "../workspace/SectionContent";
@@ -63,6 +68,13 @@ export default function Workspace() {
     },
   });
 
+  const capacityMut = useMutation({
+    mutationFn: (inputs: CapacityInputs) => generateCapacity(id, inputs),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["design", id] });
+    },
+  });
+
   const promptDirty = project != null && prompt !== project.prompt;
 
   const activeSection = SECTIONS.find((s) => s.id === active) ?? SECTIONS[0];
@@ -86,6 +98,13 @@ export default function Workspace() {
       ? requirementsMut.error.message
       : requirementsMut.error
         ? "Generation failed."
+        : null;
+
+  const capacityError =
+    capacityMut.error instanceof ApiError
+      ? capacityMut.error.message
+      : capacityMut.error
+        ? "Capacity computation failed."
         : null;
 
   return (
@@ -170,6 +189,10 @@ export default function Workspace() {
                 generating={requirementsMut.isPending}
                 error={requirementsError}
                 onGenerate={handleGenerate}
+                capacity={design?.capacity_json ?? null}
+                capacityComputing={capacityMut.isPending}
+                capacityError={capacityError}
+                onComputeCapacity={(inputs) => capacityMut.mutate(inputs)}
               />
             )}
           </div>
