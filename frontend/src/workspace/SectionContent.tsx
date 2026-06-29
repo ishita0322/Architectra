@@ -6,6 +6,7 @@ import type {
 } from "../lib/design-api";
 import ArchitectureView from "./ArchitectureView";
 import CapacityView from "./CapacityView";
+import DiagramView from "./DiagramView";
 import type { SectionMeta } from "./sections";
 
 interface SectionContentProps {
@@ -24,6 +25,11 @@ interface SectionContentProps {
   architectureGenerating: boolean;
   architectureError: string | null;
   onGenerateArchitecture: () => void;
+  // Diagram (Milestone 8)
+  diagramText: string | null;
+  diagramGenerating: boolean;
+  diagramError: string | null;
+  onGenerateDiagram: () => void;
 }
 
 /**
@@ -47,6 +53,10 @@ export default function SectionContent({
   architectureGenerating,
   architectureError,
   onGenerateArchitecture,
+  diagramText,
+  diagramGenerating,
+  diagramError,
+  onGenerateDiagram,
 }: SectionContentProps) {
   return (
     <section
@@ -85,6 +95,13 @@ export default function SectionContent({
             generating={architectureGenerating}
             error={architectureError}
             onGenerate={onGenerateArchitecture}
+          />
+        ) : section.id === "diagram" ? (
+          <DiagramView
+            diagramText={diagramText}
+            generating={diagramGenerating}
+            error={diagramError}
+            onGenerate={onGenerateDiagram}
           />
         ) : (
           <Placeholder description={section.description} />

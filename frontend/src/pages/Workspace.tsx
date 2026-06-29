@@ -7,6 +7,7 @@ import { ApiError } from "../lib/api";
 import {
   generateArchitecture,
   generateCapacity,
+  generateDiagram,
   generateRequirements,
   getDesign,
   type CapacityInputs,
@@ -83,6 +84,13 @@ export default function Workspace() {
     },
   });
 
+  const diagramMut = useMutation({
+    mutationFn: () => generateDiagram(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["design", id] });
+    },
+  });
+
   const promptDirty = project != null && prompt !== project.prompt;
 
   const activeSection = SECTIONS.find((s) => s.id === active) ?? SECTIONS[0];
@@ -120,6 +128,13 @@ export default function Workspace() {
       ? architectureMut.error.message
       : architectureMut.error
         ? "Architecture generation failed."
+        : null;
+
+  const diagramError =
+    diagramMut.error instanceof ApiError
+      ? diagramMut.error.message
+      : diagramMut.error
+        ? "Diagram generation failed."
         : null;
 
   return (
@@ -212,6 +227,10 @@ export default function Workspace() {
                 architectureGenerating={architectureMut.isPending}
                 architectureError={architectureError}
                 onGenerateArchitecture={() => architectureMut.mutate()}
+                diagramText={design?.diagram_text ?? null}
+                diagramGenerating={diagramMut.isPending}
+                diagramError={diagramError}
+                onGenerateDiagram={() => diagramMut.mutate()}
               />
             )}
           </div>

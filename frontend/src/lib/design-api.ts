@@ -110,3 +110,16 @@ export function generateArchitecture(projectId: number): Promise<Architecture> {
     true,
   );
 }
+
+export interface DiagramResult {
+  diagram_text: string;
+}
+
+/** Build a Mermaid diagram (deterministic) from the stored architecture. */
+export function generateDiagram(projectId: number): Promise<DiagramResult> {
+  return api.post<DiagramResult>(
+    `/projects/${projectId}/generate/diagram`,
+    {},
+    true,
+  );
+}

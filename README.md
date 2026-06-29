@@ -87,6 +87,10 @@ Generation (Milestone 5+, auth + project ownership required):
   depends_on relationships), databases, queues, caches }` from the project's
   prompt + stored requirements + capacity. Stored in `designs.architecture_json`.
   Requires Ollama.
+- `POST /projects/{id}/generate/diagram` — **deterministic, no AI**. Builds a
+  Mermaid `graph TD` from the stored architecture's relationships. Stored in
+  `designs.diagram_text`. 422 if architecture hasn't been generated. Rendered in
+  the workspace with SVG/PNG export.
 
 ## AI setup (Ollama, required from Milestone 5)
 
@@ -121,4 +125,5 @@ docker compose exec backend alembic upgrade head
 - [x] **Milestone 5** — requirements generator (Ollama provider abstraction; `POST .../generate/requirements`, auto-stored, regeneratable)
 - [x] **Milestone 6** — capacity engine (deterministic sizing; dashboard + charts; auto-stored in `capacity_json`)
 - [x] **Milestone 7** — architecture generator (services/databases/queues/caches + relationships; auto-stored in `architecture_json`)
+- [x] **Milestone 8** — diagram generator (deterministic Mermaid from architecture; rendered with SVG + PNG export)
 - [ ] ... see `steps.md`

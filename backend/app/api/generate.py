@@ -16,9 +16,11 @@ from app.db.models import Design, Project, User
 from app.db.session import get_db
 from app.schemas.architecture import Architecture
 from app.schemas.capacity import CapacityRequest, CapacityResult
+from app.schemas.diagram import DiagramResult
 from app.schemas.requirements import Requirements, RequirementsGenerateRequest
 from app.services.architecture_generator import generate_architecture
 from app.services.capacity_engine import CapacityInputs, compute_capacity
+from app.services.diagram_generator import build_mermaid
 from app.services.requirements_generator import generate_requirements
 
 router = APIRouter(prefix="/projects/{project_id}/generate", tags=["generate"])
@@ -137,3 +139,32 @@ async def generate_architecture_endpoint(
     db.commit()
 
     return architecture
+
+
+@router.post("/diagram", response_model=DiagramResult)
+def generate_diagram_endpoint(
+    project_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> DiagramResult:
+    """Build a Mermaid diagram from the stored architecture and store it.
+
+    Deterministic — no AI. Requires architecture to have been generated first;
+    result is stored in ``designs.diagram_text``.
+    """
+    _get_owned_project(project_id, user, db)
+    design = _get_or_create_design(project_id, db)
+
+    if not design.architecture_json:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Generate the architecture before the diagram.",
+        )
+
+    architecture = Architecture.model_validate(design.architecture_json)
+    diagram_text = build_mermaid(architecture)
+
+    design.diagram_text = diagram_text
+    db.commit()
+
+    return DiagramResult(diagram_text=diagram_text)
