@@ -36,6 +36,10 @@ class OllamaProvider:
             "stream": False,
             # Force the model to emit a single valid JSON value.
             "format": "json",
+            # Disable reasoning-model "thinking" traces (qwen3 et al.): they add
+            # large hidden token costs that roughly double latency and can blow
+            # past the timeout for heavier prompts. We only want the JSON answer.
+            "think": False,
             "options": {"temperature": 0.2},
         }
 
@@ -44,16 +48,29 @@ class OllamaProvider:
                 resp = await client.post(
                     f"{self._base_url}/api/generate", json=payload
                 )
+                # Models that don't support "think" reject it with a 400;
+                # retry once without it so the provider stays model-agnostic.
+                if resp.status_code == 400 and "think" in payload:
+                    payload.pop("think")
+                    resp = await client.post(
+                        f"{self._base_url}/api/generate", json=payload
+                    )
                 resp.raise_for_status()
         except httpx.HTTPStatusError as exc:
             raise LLMError(
                 f"Ollama returned {exc.response.status_code}. Is the model "
                 f"'{self._model}' pulled? (ollama pull {self._model})"
             ) from exc
+        except httpx.TimeoutException as exc:
+            raise LLMError(
+                f"Ollama timed out after {self._timeout:.0f}s generating with "
+                f"'{self._model}'. CPU inference can be slow for large prompts; "
+                f"raise OLLAMA_TIMEOUT_SECONDS or use a smaller model. ({exc!r})"
+            ) from exc
         except httpx.HTTPError as exc:
             raise LLMError(
                 f"Could not reach Ollama at {self._base_url}. Is it running? "
-                f"({exc})"
+                f"({exc!r})"
             ) from exc
 
         body = resp.json()

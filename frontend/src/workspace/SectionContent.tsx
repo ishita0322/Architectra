@@ -2,10 +2,12 @@ import type {
   Architecture,
   Capacity,
   CapacityInputs,
+  DatabaseSchema,
   Requirements,
 } from "../lib/design-api";
 import ArchitectureView from "./ArchitectureView";
 import CapacityView from "./CapacityView";
+import DatabaseView from "./DatabaseView";
 import DiagramView from "./DiagramView";
 import type { SectionMeta } from "./sections";
 
@@ -30,6 +32,11 @@ interface SectionContentProps {
   diagramGenerating: boolean;
   diagramError: string | null;
   onGenerateDiagram: () => void;
+  // Database (Milestone 9)
+  database: DatabaseSchema | null;
+  databaseGenerating: boolean;
+  databaseError: string | null;
+  onGenerateDatabase: () => void;
 }
 
 /**
@@ -57,6 +64,10 @@ export default function SectionContent({
   diagramGenerating,
   diagramError,
   onGenerateDiagram,
+  database,
+  databaseGenerating,
+  databaseError,
+  onGenerateDatabase,
 }: SectionContentProps) {
   return (
     <section
@@ -102,6 +113,13 @@ export default function SectionContent({
             generating={diagramGenerating}
             error={diagramError}
             onGenerate={onGenerateDiagram}
+          />
+        ) : section.id === "database" ? (
+          <DatabaseView
+            schema={database}
+            generating={databaseGenerating}
+            error={databaseError}
+            onGenerate={onGenerateDatabase}
           />
         ) : (
           <Placeholder description={section.description} />

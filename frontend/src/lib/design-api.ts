@@ -59,7 +59,7 @@ export interface Design {
   requirements_json: Requirements | null;
   capacity_json: Capacity | null;
   architecture_json: Architecture | null;
-  database_json: unknown | null;
+  database_json: DatabaseSchema | null;
   api_json: unknown | null;
   diagram_text: string | null;
   created_at: string;
@@ -115,10 +115,45 @@ export interface DiagramResult {
   diagram_text: string;
 }
 
+export interface DbColumn {
+  name: string;
+  type: string;
+  constraints: string;
+}
+
+export interface DbTable {
+  name: string;
+  columns: DbColumn[];
+  indexes: string[];
+}
+
+export interface DbRelationship {
+  from_table: string;
+  from_column: string;
+  to_table: string;
+  to_column: string;
+  kind: string;
+}
+
+export interface DatabaseSchema {
+  tables: DbTable[];
+  relationships: DbRelationship[];
+  sql: string;
+}
+
 /** Build a Mermaid diagram (deterministic) from the stored architecture. */
 export function generateDiagram(projectId: number): Promise<DiagramResult> {
   return api.post<DiagramResult>(
     `/projects/${projectId}/generate/diagram`,
+    {},
+    true,
+  );
+}
+
+/** Generate the relational database schema from requirements + architecture. */
+export function generateDatabase(projectId: number): Promise<DatabaseSchema> {
+  return api.post<DatabaseSchema>(
+    `/projects/${projectId}/generate/database`,
     {},
     true,
   );

@@ -91,6 +91,10 @@ Generation (Milestone 5+, auth + project ownership required):
   Mermaid `graph TD` from the stored architecture's relationships. Stored in
   `designs.diagram_text`. 422 if architecture hasn't been generated. Rendered in
   the workspace with SVG/PNG export.
+- `POST /projects/{id}/generate/database` — generates `{ tables (columns +
+  indexes), relationships, sql }` from the project's prompt + stored
+  requirements + architecture. Stored in `designs.database_json`. Rendered with
+  an ER diagram (Mermaid) and SQL export. Requires Ollama.
 
 ## AI setup (Ollama, required from Milestone 5)
 
@@ -105,8 +109,11 @@ curl -s localhost:11434/api/tags                 # verify the model is listed
 
 `OLLAMA_BASE_URL` defaults to `http://localhost:11434` for local venv dev; set
 it to `http://host.docker.internal:11434` under docker compose so the container
-can reach Ollama on the host. CPU inference is slow (~20–60s/generation); the
-backend allows up to `OLLAMA_TIMEOUT_SECONDS` (default 120).
+can reach Ollama on the host. CPU inference is slow (~60–190s/generation —
+the database-schema prompt is heaviest); the backend allows up to
+`OLLAMA_TIMEOUT_SECONDS` (default 300). Reasoning-model "thinking" is disabled
+(`think: false`) to roughly halve latency and keep generation within the
+timeout.
 
 ## Database migrations (Alembic)
 
@@ -126,4 +133,5 @@ docker compose exec backend alembic upgrade head
 - [x] **Milestone 6** — capacity engine (deterministic sizing; dashboard + charts; auto-stored in `capacity_json`)
 - [x] **Milestone 7** — architecture generator (services/databases/queues/caches + relationships; auto-stored in `architecture_json`)
 - [x] **Milestone 8** — diagram generator (deterministic Mermaid from architecture; rendered with SVG + PNG export)
+- [x] **Milestone 9** — database schema generator (tables/relationships/indexes + SQL DDL; ER diagram + SQL export)
 - [ ] ... see `steps.md`
