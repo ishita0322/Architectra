@@ -120,7 +120,7 @@ export default function Workspace() {
     setShowPrompt(false);
     // Only requirements generation exists today (Milestone 5); later
     // milestones add a branch per section.
-    if (active === "requirements" || requirementsMut.isIdle) {
+    if (active === "requirements" && requirementsMut.isIdle) {
       requirementsMut.mutate();
     }
   }
@@ -198,6 +198,12 @@ export default function Workspace() {
           >
             Sections
           </button>
+          <Link
+            to={`/workspace/${id}/report`}
+            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Export report
+          </Link>
           <span className="hidden text-sm text-slate-500 sm:inline">{user?.email}</span>
           <button
             onClick={logout}

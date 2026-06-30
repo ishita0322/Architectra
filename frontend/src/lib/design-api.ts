@@ -1,4 +1,4 @@
-import { api } from "./api";
+import { API_URL, api, getToken } from "./api";
 
 export interface Requirements {
   functional: string[];
@@ -185,4 +185,28 @@ export function generateApis(projectId: number): Promise<ApiContract> {
     {},
     true,
   );
+}
+
+export interface DesignReport {
+  project: { id: number; title: string; prompt: string };
+  requirements: Requirements | null;
+  capacity: Capacity | null;
+  architecture: Architecture | null;
+  diagram: string | null;
+  database: DatabaseSchema | null;
+  apis: ApiContract | null;
+}
+
+/** Full design report as a JSON bundle (all sections). */
+export function getReport(projectId: number): Promise<DesignReport> {
+  return api.get<DesignReport>(`/projects/${projectId}/report`, true);
+}
+
+/** Fetch the report Markdown (raw text) with auth. */
+export async function fetchReportMarkdown(projectId: number): Promise<string> {
+  const res = await fetch(`${API_URL}/projects/${projectId}/report.md`, {
+    headers: { Authorization: `Bearer ${getToken() ?? ""}` },
+  });
+  if (!res.ok) throw new Error(`Report download failed (${res.status})`);
+  return res.text();
 }

@@ -47,9 +47,6 @@ docker compose up --build
 The backend auto-detects SQLite vs Postgres from `DATABASE_URL` — no code change
 needed to switch.
 
-The frontend home page shows a live status panel for the frontend, backend,
-and database — all three dots green means the environment is wired correctly.
-
 ## Backend endpoints
 
 Health:
@@ -101,6 +98,11 @@ Generation (Milestone 5+, auth + project ownership required):
   synthesized deterministically from the endpoints (Swagger-ready, exportable).
   Stored in `designs.api_json`. Requires Ollama.
 
+Report export (Milestone 11, deterministic, auth + ownership):
+- `GET /projects/{id}/report` — full design report (all 6 sections) as a JSON bundle
+- `GET /projects/{id}/report.md` — the report as a downloadable Markdown document.
+  The frontend report view also offers JSON download and Print → Save as PDF.
+
 ## AI setup (Ollama, required from Milestone 5)
 
 Generation calls a local [Ollama](https://ollama.com) server over its REST API
@@ -141,4 +143,6 @@ docker compose exec backend alembic upgrade head
 - [x] **Milestone 8** — diagram generator (deterministic Mermaid from architecture; rendered with SVG + PNG export)
 - [x] **Milestone 9** — database schema generator (tables/relationships/indexes + SQL DDL; ER diagram + SQL export)
 - [x] **Milestone 10** — API contract generator (endpoints + request/response/error models; synthesized OpenAPI 3.0; export)
-- [ ] ... see `steps.md`
+- [x] **Milestone 11** — design report export (all 6 sections → Markdown / JSON / PDF; download support)
+
+**All 12 milestones (0–11) complete — MVP done.**
