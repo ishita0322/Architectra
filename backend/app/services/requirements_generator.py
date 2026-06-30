@@ -6,6 +6,8 @@ mode and the result is validated against the :class:`Requirements` schema, so
 callers always get a well-formed object (or an :class:`LLMError`).
 """
 
+from typing import Any
+
 from app.ai.base import LLMError, LLMProvider
 from app.schemas.requirements import Requirements
 
@@ -35,8 +37,21 @@ async def generate_requirements(provider: LLMProvider, prompt: str) -> Requireme
         system=_SYSTEM, prompt=user_prompt, schema_hint=_SCHEMA_HINT
     )
 
-    try:
-        # Ignore any extra keys the model adds; coerce to our schema.
-        return Requirements.model_validate(data)
-    except ValueError as exc:
-        raise LLMError(f"Generated requirements did not match schema: {exc}") from exc
+    if not isinstance(data, dict):
+        raise LLMError("Generated requirements was not a JSON object.")
+
+    # Coerce each section to a list of strings, ignoring malformed items, so a
+    # stray non-string entry doesn't reject the whole response.
+    def _strs(items: Any) -> list[str]:
+        if not isinstance(items, list):
+            return []
+        return [str(x) for x in items if isinstance(x, (str, int, float))]
+
+    req = Requirements(
+        functional=_strs(data.get("functional")),
+        non_functional=_strs(data.get("non_functional")),
+        assumptions=_strs(data.get("assumptions")),
+    )
+    if not (req.functional or req.non_functional or req.assumptions):
+        raise LLMError("Generated requirements were empty.")
+    return req

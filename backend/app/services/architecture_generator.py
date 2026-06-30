@@ -10,7 +10,7 @@ import json
 from typing import Any
 
 from app.ai.base import LLMError, LLMProvider
-from app.schemas.architecture import Architecture
+from app.schemas.architecture import Architecture, Component, Service
 
 _SYSTEM = (
     "You are a senior software architect. Given a system's requirements and "
@@ -60,7 +60,36 @@ async def generate_architecture(
         system=_SYSTEM, prompt=user_prompt, schema_hint=_SCHEMA_HINT
     )
 
-    try:
-        return Architecture.model_validate(data)
-    except ValueError as exc:
-        raise LLMError(f"Generated architecture did not match schema: {exc}") from exc
+    return _coerce(data)
+
+
+def _coerce(data: Any) -> Architecture:
+    """Build an Architecture, dropping malformed items rather than failing.
+
+    Local models occasionally emit a stray malformed entry (a bare string where
+    an object is expected, or a component missing ``name``). We keep the
+    well-formed ones instead of rejecting the whole (otherwise good) response.
+    """
+    if not isinstance(data, dict):
+        raise LLMError("Generated architecture was not a JSON object.")
+
+    def _valid(model_cls: type, items: Any) -> list:
+        out = []
+        if isinstance(items, list):
+            for item in items:
+                try:
+                    out.append(model_cls.model_validate(item))
+                except ValueError:
+                    continue
+        return out
+
+    services = _valid(Service, data.get("services"))
+    if not services:
+        raise LLMError("Generated architecture contained no usable services.")
+
+    return Architecture(
+        services=services,
+        databases=_valid(Component, data.get("databases")),
+        queues=_valid(Component, data.get("queues")),
+        caches=_valid(Component, data.get("caches")),
+    )
