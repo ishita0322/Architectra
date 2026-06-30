@@ -1,10 +1,12 @@
 import type {
+  ApiContract,
   Architecture,
   Capacity,
   CapacityInputs,
   DatabaseSchema,
   Requirements,
 } from "../lib/design-api";
+import ApiContractView from "./ApiContractView";
 import ArchitectureView from "./ArchitectureView";
 import CapacityView from "./CapacityView";
 import DatabaseView from "./DatabaseView";
@@ -37,6 +39,11 @@ interface SectionContentProps {
   databaseGenerating: boolean;
   databaseError: string | null;
   onGenerateDatabase: () => void;
+  // APIs (Milestone 10)
+  apis: ApiContract | null;
+  apisGenerating: boolean;
+  apisError: string | null;
+  onGenerateApis: () => void;
 }
 
 /**
@@ -68,6 +75,10 @@ export default function SectionContent({
   databaseGenerating,
   databaseError,
   onGenerateDatabase,
+  apis,
+  apisGenerating,
+  apisError,
+  onGenerateApis,
 }: SectionContentProps) {
   return (
     <section
@@ -120,6 +131,13 @@ export default function SectionContent({
             generating={databaseGenerating}
             error={databaseError}
             onGenerate={onGenerateDatabase}
+          />
+        ) : section.id === "apis" ? (
+          <ApiContractView
+            contract={apis}
+            generating={apisGenerating}
+            error={apisError}
+            onGenerate={onGenerateApis}
           />
         ) : (
           <Placeholder description={section.description} />

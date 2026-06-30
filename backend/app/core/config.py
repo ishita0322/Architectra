@@ -23,9 +23,11 @@ class Settings(BaseSettings):
     # backend overrides this with host.docker.internal via .env.
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "qwen3:8b"
-    # Generation can be slow on CPU inference; give the model room. The
-    # database-schema prompt (full DDL) is the heaviest, so default generously.
-    ollama_timeout_seconds: float = 300.0
+    # Generation can be very slow on CPU inference. Measured throughput for
+    # qwen3:8b (Q4) on CPU is ~5 tokens/sec; the database-schema generator emits
+    # the most tokens (~1500) and needs ~300-350s, so the timeout must clear that
+    # with headroom. On a GPU this is far faster and the timeout is irrelevant.
+    ollama_timeout_seconds: float = 600.0
 
     # CORS
     cors_origins: str = "http://localhost:5173"

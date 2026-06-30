@@ -60,7 +60,7 @@ export interface Design {
   capacity_json: Capacity | null;
   architecture_json: Architecture | null;
   database_json: DatabaseSchema | null;
-  api_json: unknown | null;
+  api_json: ApiContract | null;
   diagram_text: string | null;
   created_at: string;
   updated_at: string;
@@ -141,6 +141,25 @@ export interface DatabaseSchema {
   sql: string;
 }
 
+export interface ApiErrorResponse {
+  status: number;
+  description: string;
+}
+
+export interface ApiEndpoint {
+  method: string;
+  path: string;
+  summary: string;
+  request_model: Record<string, unknown> | null;
+  response_model: Record<string, unknown> | null;
+  error_responses: ApiErrorResponse[];
+}
+
+export interface ApiContract {
+  endpoints: ApiEndpoint[];
+  openapi: Record<string, unknown> | null;
+}
+
 /** Build a Mermaid diagram (deterministic) from the stored architecture. */
 export function generateDiagram(projectId: number): Promise<DiagramResult> {
   return api.post<DiagramResult>(
@@ -154,6 +173,15 @@ export function generateDiagram(projectId: number): Promise<DiagramResult> {
 export function generateDatabase(projectId: number): Promise<DatabaseSchema> {
   return api.post<DatabaseSchema>(
     `/projects/${projectId}/generate/database`,
+    {},
+    true,
+  );
+}
+
+/** Generate the REST API contract from requirements + architecture + database. */
+export function generateApis(projectId: number): Promise<ApiContract> {
+  return api.post<ApiContract>(
+    `/projects/${projectId}/generate/apis`,
     {},
     true,
   );

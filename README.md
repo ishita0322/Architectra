@@ -95,6 +95,11 @@ Generation (Milestone 5+, auth + project ownership required):
   indexes), relationships, sql }` from the project's prompt + stored
   requirements + architecture. Stored in `designs.database_json`. Rendered with
   an ER diagram (Mermaid) and SQL export. Requires Ollama.
+- `POST /projects/{id}/generate/apis` — generates `{ endpoints (method, path,
+  request/response models, error responses) }` from the project's prompt +
+  stored requirements + architecture + database. The OpenAPI 3.0 document is
+  synthesized deterministically from the endpoints (Swagger-ready, exportable).
+  Stored in `designs.api_json`. Requires Ollama.
 
 ## AI setup (Ollama, required from Milestone 5)
 
@@ -109,9 +114,10 @@ curl -s localhost:11434/api/tags                 # verify the model is listed
 
 `OLLAMA_BASE_URL` defaults to `http://localhost:11434` for local venv dev; set
 it to `http://host.docker.internal:11434` under docker compose so the container
-can reach Ollama on the host. CPU inference is slow (~60–190s/generation —
-the database-schema prompt is heaviest); the backend allows up to
-`OLLAMA_TIMEOUT_SECONDS` (default 300). Reasoning-model "thinking" is disabled
+can reach Ollama on the host. CPU inference is slow — measured ~5 tokens/sec
+for qwen3:8b (Q4); the database-schema generator emits the most tokens and can
+take ~400-430s. The backend allows up to `OLLAMA_TIMEOUT_SECONDS` (default 600).
+On a GPU this is far faster. Reasoning-model "thinking" is disabled
 (`think: false`) to roughly halve latency and keep generation within the
 timeout.
 
@@ -134,4 +140,5 @@ docker compose exec backend alembic upgrade head
 - [x] **Milestone 7** — architecture generator (services/databases/queues/caches + relationships; auto-stored in `architecture_json`)
 - [x] **Milestone 8** — diagram generator (deterministic Mermaid from architecture; rendered with SVG + PNG export)
 - [x] **Milestone 9** — database schema generator (tables/relationships/indexes + SQL DDL; ER diagram + SQL export)
+- [x] **Milestone 10** — API contract generator (endpoints + request/response/error models; synthesized OpenAPI 3.0; export)
 - [ ] ... see `steps.md`

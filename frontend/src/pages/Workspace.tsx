@@ -5,6 +5,7 @@ import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { ApiError } from "../lib/api";
 import {
+  generateApis,
   generateArchitecture,
   generateCapacity,
   generateDatabase,
@@ -99,6 +100,13 @@ export default function Workspace() {
     },
   });
 
+  const apisMut = useMutation({
+    mutationFn: () => generateApis(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["design", id] });
+    },
+  });
+
   const promptDirty = project != null && prompt !== project.prompt;
 
   const activeSection = SECTIONS.find((s) => s.id === active) ?? SECTIONS[0];
@@ -150,6 +158,13 @@ export default function Workspace() {
       ? databaseMut.error.message
       : databaseMut.error
         ? "Database generation failed."
+        : null;
+
+  const apisError =
+    apisMut.error instanceof ApiError
+      ? apisMut.error.message
+      : apisMut.error
+        ? "API generation failed."
         : null;
 
   return (
@@ -250,6 +265,10 @@ export default function Workspace() {
                 databaseGenerating={databaseMut.isPending}
                 databaseError={databaseError}
                 onGenerateDatabase={() => databaseMut.mutate()}
+                apis={design?.api_json ?? null}
+                apisGenerating={apisMut.isPending}
+                apisError={apisError}
+                onGenerateApis={() => apisMut.mutate()}
               />
             )}
           </div>
